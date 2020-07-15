@@ -13,14 +13,27 @@ export class HomeComponent implements OnInit {
   constructor(private propertySvc: PropertiesService) { }
 
   ngOnInit(): void {
-    this.propertySvc.getProperties().then(
+    // this.propertySvc.getProperties().then(
+    //   (data: any) => {
+    //     console.log(data);
+    //     this.properties = data;
+    //   }
+    // ).catch(
+    //   (error) => {
+    //     console.log(error);
+    //   }
+    // );
+    this.propertySvc.getProperties().subscribe(
       (data: any) => {
-        console.log(data);
+        console.log('Observable recu =>', data);
         this.properties = data;
-      }
-    ).catch(
+      },
       (error) => {
-        console.log(error);
+        console.error(error);
+        alert(error);
+      },
+      () => {
+        console.log('Obserble complete!');
       }
     );
   }
