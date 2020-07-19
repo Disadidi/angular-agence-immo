@@ -1,54 +1,33 @@
 import { Injectable } from '@angular/core';
 import { Observable, Subject } from 'rxjs';
-
+import { Property } from '../interface/property';
+import * as firebase from 'firebase';
 
 @Injectable({
   providedIn: 'root'
 })
 export class PropertiesService {
 
-  properties = [
-    {
-      tile: 'Super maison',
-      category: 'Maison',
-      sold: false,
-    },
-    {
-      tile: 'Petit Appartement',
-      category: 'Appartement',
-      sold: true,
-    },
-    {
-      tile: 'Belle Villa',
-      category: 'Maison',
-      sold: false,
-    },
-  ];
+  properties: Property[] = [];
 
-  propertiesSubject = new Subject<any[]>();
+  propertiesSubject = new Subject<Property[]>();
+  private urlDataBase = '/properties';
+  private dirName = 'images/properties';
 
   constructor() { }
 
-  getProperties(): Observable<any[]> {
-    // return new Promise(
-    //   (resolve, reject) => {
-    //     if (this.proprities && this.proprities.length > 0){
-    //       resolve(this.proprities);
-    //     }else{
-    //       const error = new Error('Properties does not exist or is empty');
-    //       reject(error);
-    //     }
-    //   }
-    // );
+  emitProperties(): void{
+    this.propertiesSubject.next(this.properties);
+  }
+  saveProperties(): void {
+    firebase.database().ref(this.urlDataBase).set(this.properties);
+  }
 
-    return new Observable((observer) => {
-      if (this.properties && this.properties.length > 0){
-        observer.next(this.properties);
-        observer.complete();
-      }else{
-        const error = new Error('Properties does not exist or is empty');
-        observer.error(error);
-      }
+  getProperties(): void{
+    firebase.database().ref(this.urlDataBase).on('value', (data) => {
+      this.properties = data.val()? data.val() : [] ;
+      // TODO verifier si nécessaire d'emettre les données
+      this.emitProperties();
     });
   }
 
@@ -59,6 +38,80 @@ export class PropertiesService {
     }else{
       return this.properties[index].sold;
     }
+  }
 
+  getPropertyByIndex(index: number): Property{
+
+    return this.properties[index];
+  }
+
+  createProperty(property: Property ): void{
+    this.properties.push(property);
+    this.saveProperties();
+    this.emitProperties();
+  }
+
+  deleteProperty(index: number): void{
+
+    this.properties[index].photos.forEach(
+      (photo) => {
+        this.removeFile(photo);
+      }
+    );
+    this.properties.splice(index, 1);
+    this.saveProperties();
+  }
+
+  updateProperty(property: Property, index: number): void{
+    // this.properties[index] = property;
+    // this.saveProperties();
+
+    firebase.database().ref(this.urlDataBase + '/' + index).update(property).catch(
+      (error) => {
+        console.error(error);
+      }
+    );
+  }
+
+  uploadFile(file: File): Promise<string> {
+    return new Promise(
+      (resolve, reject) => {
+        const uniqueId = Date.now().toString();
+        const upload = firebase.storage().ref().child(this.dirName + uniqueId + file.name).put(file);
+        // récuperer l'état du chargement
+        upload.on(firebase.storage.TaskEvent.STATE_CHANGED,
+          // paddinf
+          () => {
+            console.log('Chargement…');
+          },
+          (error) => {
+            console.error(error);
+            reject(error);
+          },
+          () => {
+            upload.snapshot.ref.getDownloadURL().then(
+              (downloadUrl) => {
+                resolve(downloadUrl);
+              }
+            );
+          });
+      }
+    );
+  }
+
+  // pour récupèrer les notification de l'afficher à l'utilisateur on peu utiliser une Promesse
+  // TODO: mieux gérer le fonctionnement
+  removeFile(fileLink): void {
+    const storafeRef = firebase.storage().refFromURL(fileLink);
+    storafeRef.delete().then(
+      () => {
+        console.log('File deleted');
+      }
+    ).catch(
+      (error) => {
+        console.error(error);
+      }
+    );
+    this.saveProperties();
   }
 }

@@ -1,4 +1,6 @@
 import { Component, OnInit } from '@angular/core';
+import { AuthenticationService } from '../services/authentication.service';
+import * as firebase from 'firebase';
 
 @Component({
   selector: 'app-header',
@@ -9,12 +11,28 @@ export class HeaderComponent implements OnInit {
 
   title = 'Ma Super Agence';
   isDisabled = false;
-  constructor() { }
+  isLoggedIn: boolean;
+
+  constructor(
+    private authenticationSvc: AuthenticationService
+  ) { }
 
   ngOnInit(): void {
+
+    firebase.auth().onAuthStateChanged(
+      (userSession) => {
+        if (userSession){
+          this.isLoggedIn = true;
+          console.log('header.component => Connecté');
+        }else{
+          this.isLoggedIn = false;
+          console.log('header.component => deconnecté');
+        }
+      }
+    )
   }
 
-  onClick(): void {
-    console.log("click");
+  deconnexion(): void{
+    this.authenticationSvc.sigOutUser();
   }
 }

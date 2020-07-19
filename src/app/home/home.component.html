@@ -3,9 +3,9 @@
     <div class="col-sm-12 col-md-6 col-lg-4" *ngFor="let property of properties; let i = index">
       <div class="card" style="width: 18rem;">
         <div class="card-body">
-          <h5 class="card-title">{{ property.tile }}</h5>
+          <h5 class="card-title">{{ property.title }}</h5>
           <h6 class="card-subtitle mb-2 text-muted">{{ property.category }}</h6>
-          <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+          <p class="card-text">{{ property.description }}</p>
           <p [ngStyle]="{color: getSoldValue(i)}">
             <span *ngIf="!property.sold">A vendre</span>
             <span *ngIf="property.sold">Vendu!</span>

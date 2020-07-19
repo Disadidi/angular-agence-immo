@@ -1,41 +1,30 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { PropertiesService } from '../services/properties.service';
+import { Subscription } from 'rxjs';
+import { Property } from '../interface/property';
 
 @Component({
   selector: 'app-home',
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.css']
 })
-export class HomeComponent implements OnInit {
+export class HomeComponent implements OnInit, OnDestroy {
 
-  properties = [];
+  properties: Property[] = [];
+  //propertiesSubscription: Subscription;
 
   constructor(private propertySvc: PropertiesService) { }
 
   ngOnInit(): void {
-    // this.propertySvc.getProperties().then(
-    //   (data: any) => {
-    //     console.log(data);
-    //     this.properties = data;
-    //   }
-    // ).catch(
-    //   (error) => {
-    //     console.log(error);
-    //   }
-    // );
-    this.propertySvc.getProperties().subscribe(
-      (data: any) => {
+    this.propertySvc.propertiesSubject.subscribe(
+      (data: Property[]) => {
         console.log('Observable recu =>', data);
         this.properties = data;
-      },
-      (error) => {
-        console.error(error);
-        alert(error);
-      },
-      () => {
-        console.log('Obserble complete!');
       }
     );
+    this.propertySvc.getProperties();
+    console.log("initialisation du tableau");
+    this.propertySvc.emitProperties();
   }
 
 
@@ -47,6 +36,10 @@ export class HomeComponent implements OnInit {
     else{
       return 'green';
     }
+  }
+
+  ngOnDestroy(): void {
+    //this.propertiesSubscription.unsubscribe();
   }
 
 }
