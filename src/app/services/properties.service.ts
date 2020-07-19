@@ -40,9 +40,26 @@ export class PropertiesService {
     }
   }
 
+  // Pour test
   getPropertyByIndex(index: number): Property{
 
     return this.properties[index];
+  }
+
+  getSingleProperty(id: string): Promise<Property>{
+    return new Promise(
+      (resolve, reject) => {
+        firebase.database().ref(this.urlDataBase + '/' + id).once('value').then(
+          (data) => {
+            resolve(data.val());
+          }
+        ).catch(
+          (error) => {
+            reject(error);
+          }
+        );
+      }
+    );
   }
 
   createProperty(property: Property ): void{

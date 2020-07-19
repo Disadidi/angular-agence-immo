@@ -2,6 +2,7 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { PropertiesService } from '../services/properties.service';
 import { Subscription } from 'rxjs';
 import { Property } from '../interface/property';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-home',
@@ -11,9 +12,11 @@ import { Property } from '../interface/property';
 export class HomeComponent implements OnInit, OnDestroy {
 
   properties: Property[] = [];
-  //propertiesSubscription: Subscription;
+  // propertiesSubscription: Subscription;
 
-  constructor(private propertySvc: PropertiesService) { }
+  constructor(
+    private propertySvc: PropertiesService,
+    private router: Router) { }
 
   ngOnInit(): void {
     this.propertySvc.propertiesSubject.subscribe(
@@ -23,7 +26,7 @@ export class HomeComponent implements OnInit, OnDestroy {
       }
     );
     this.propertySvc.getProperties();
-    console.log("initialisation du tableau");
+    console.log('initialisation du tableau');
     this.propertySvc.emitProperties();
   }
 
@@ -39,7 +42,13 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    //this.propertiesSubscription.unsubscribe();
+    // this.propertiesSubscription.unsubscribe();
+  }
+
+  onGoToSingleProperty(index: number): void{
+    const route = ['/property', index];
+    console.log('index', index);
+    this.router.navigate(route);
   }
 
 }
